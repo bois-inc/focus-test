@@ -6,7 +6,7 @@
     </head>
     <body style="width:100%; height:100%; margin:0; padding:0; border:none;"> 
 
-        <div class="uibox" style="
+        <div id="uibox" class="uibox" style="
             pointer-events: none; 
             position:fixed; 
             top:0; left:0; bottom:0; right:0; 
@@ -16,6 +16,9 @@
             <div class="slidecontainer" style="pointer-events: auto;">
             </div>
             <div style="pointer-events: auto;">
+                <button onclick="btn_startclick()">Start</button>
+                <button onclick="btn_resetclick()">Reset</button>
+                <button onclick="btn_pauseclick()">Pause</button>
             </div>
         </div>
         <canvas id="canvas" style="display:block; background:black; margin:0; padding:0; border:none; width:100%; height:100%;"></canvas>
