@@ -1,5 +1,5 @@
 let PARAMS = {
-    outerbox_w_px: 800,
+    outerbox_w_px: 180,
     // Relative to outerbox width 
     innerbox_size_pct: (3/14),
     padding_size_pct: (5/28),
@@ -19,7 +19,6 @@ let PARAMS = {
         tova_nth_present: 0,
         tova_timer_num: undefined as any as number,
         tova_out: undefined as any as TovaOuput,
-        tova_current_present: undefined as any as TovaPresentEvent,
     },
 
     canvas: {} as HTMLCanvasElement,
@@ -45,6 +44,7 @@ function main() {
     
     window.addEventListener('resize', () => { onResize(context); });
     canvas.addEventListener('click', (e)=>{ click(e, context); });
+    window.addEventListener('keydown', tova_response);
 
 }
 
@@ -89,8 +89,6 @@ function click(e:MouseEvent, ctx:CanvasRenderingContext2D) {
     console.log("Canvas Click");
     toggleUI(false);
 }
-
-
 
 
 type ViewState = 
@@ -149,15 +147,25 @@ function draw(ctx:CanvasRenderingContext2D) {
 type TovaOuput = {
     sections: TovaSection[],
     allResponses: TovaResponse[],
-    allPresents: TovaPresentEvent[]
+    allPresents: TovaPresentEvent[],
 }
 type TovaSection = TovaPresentEvent[] 
-type TovaPresentEvent = { isTrigger: boolean, responses: TovaResponse[], orderValue: number, presentedAt?:number }
+type TovaPresentEvent = { 
+    isTrigger: boolean, 
+    responses: TovaResponse[], 
+    orderValue: number, 
+    presentedAt?:number,
+    data?: {
+        isComissionErr: boolean,
+        isOmissionErr: boolean,
+        isAnticipatoryResponse: boolean,
+    }
+}
 type TovaResponse = {
     triggerAt: number,
     msAfterLastPresent: number,
     lastPresentWasTrigger: boolean,
-    present: TovaPresentEvent
+    present: TovaPresentEvent,
 }
 
 // active test
@@ -185,7 +193,6 @@ function tova_play() {
 function tova_reset() {
     tova_pause();
     AT.tova_nth_present = 0;
-    AT.tova_current_present = undefined as any;
 
     // Generate Test
     AT.tova_out = {
@@ -220,6 +227,81 @@ function tova_pause() {
         clearInterval(AT.tova_timer_num);
         AT.tova_timer_num = undefined as any;
     }
+}
+
+/**
+ * 1. add response to current presesnt
+ * 2. add response to all response
+ **/
+function tova_response() {
+    if (!(AT.tova_out)) { return; }
+    let current = AT.tova_out.allPresents[AT.tova_nth_present];
+   
+    let t = (new Date()).getTime(); 
+    let r: TovaResponse = {
+        lastPresentWasTrigger: current.isTrigger,
+        present: current,
+        triggerAt: t,
+        msAfterLastPresent: t - current.presentedAt!
+    } 
+    current.responses.push(r);
+    AT.tova_out.allResponses.push(r);
+}
+
+type SectionResults = {
+    errorsOfComission: number,
+    errorsOfOmission: number,
+    RTVariability: number,
+    avgRT: number
+}
+
+type GeneratedOut = {
+    bysection: SectionResults[],
+    byhalf: SectionResults[],
+    total: SectionResults
+}
+
+function generate_results(o:TovaOuput): GeneratedOut  {
+    let out:GeneratedOut = {
+        bysection: [],
+        byhalf: [],
+        total: {} as any
+    }
+
+    for (let p of o.allPresents) {
+       
+        let didRespond = p.responses.length > 0;
+
+        // This happens when trigger is 200ms before present or 150ms after
+        let isAR = didRespond && ( 
+                        (p.responses[0].msAfterLastPresent > (PARAMS.tova.time_between_present - 200)) || 
+                        (p.responses[0].msAfterLastPresent > 150)
+                                 );
+        // When subject pushes the button when they shouldn’t have 
+        let isCom = false;
+        // When subject doesnt push button when they should have
+        let isOm = false;
+        
+        // ARs are not counted as commision or omission errors 
+        if (!isAR) {
+            isCom = didRespond && !p.isTrigger
+            isOm = !didRespond && p.isTrigger
+        }
+
+        p.data = {
+            isComissionErr: isCom,
+            isOmissionErr: isOm,
+            isAnticipatoryResponse: isAR
+        }
+    }
+
+    for (let s of o.sections) {
+        
+    }
+
+    
+
+    return out;
 }
 
 
