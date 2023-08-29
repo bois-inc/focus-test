@@ -10,7 +10,7 @@ notes: [https://www.icloud.com/notes/0bdf1tgVcBfTbNu3r4jOxOWGw#tova](https://www
 
 
 ```
-open index.html
+double click index.html
 ```
 
 also: [cptcodes](https://github.com/bois-inc/cptcodes)
