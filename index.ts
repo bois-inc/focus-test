@@ -111,12 +111,14 @@ function draw(ctx:CanvasRenderingContext2D) {
 
     switch (viewmode) {
         case "testing":
-            drawOuterBox();
+            // drawOuterBox();
+            // Real test draws nothing in between TARGET/NONTARGET presentations
             let testState = view.state;
             switch (testState) {
                 case "EMPTY": break;
-                case "TARGET": drawInnerBox(true); break;
-                case "NONTARGET": drawInnerBox(false); break;
+                // moved here so outerbox is not drawn if view.state is empty
+                case "TARGET":      drawOuterBox(); drawInnerBox(true); break;
+                case "NONTARGET":   drawOuterBox(); drawInnerBox(false); break;
             } 
             break;
     }

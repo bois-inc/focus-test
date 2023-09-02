@@ -81,14 +81,18 @@ function draw(ctx) {
     var viewmode = view.mode;
     switch (viewmode) {
         case "testing":
-            drawOuterBox();
+            // drawOuterBox();
+            // Real test draws nothing in between TARGET/NONTARGET presentations
             var testState = view.state;
             switch (testState) {
                 case "EMPTY": break;
+                // moved here so outerbox is not drawn if view.state is empty
                 case "TARGET":
+                    drawOuterBox();
                     drawInnerBox(true);
                     break;
                 case "NONTARGET":
+                    drawOuterBox();
                     drawInnerBox(false);
                     break;
             }
